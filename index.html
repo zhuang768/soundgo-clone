@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="soundgo clone — play chords and melodies with your hands through your webcam.">
+<title>soundgo clone</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <video id="video" autoplay playsinline muted></video>
+</div>
+<canvas id="canvas"></canvas>
+<div id="note-display"></div>
+
+<div id="hud">
+  Melody: <span id="pitch-val">---</span> Hz<br>
+  Volume: <span id="vol-val">---</span><br>
+  R-Pinch: <span id="rfist-val">---</span><br>
+  Chord: <span id="chord-val">---</span><br>
+  Hands: <span id="hand-count">0</span>
+</div>
+
+<div id="controls">
+  <label>Mode
+    <select id="mode">
+      <option value="two-hand-chord" selected>Two-hand Chord</option>
+      <option value="melody-chord">Melody + Chord</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="snap" checked> Snap</label>
+  <label><input type="checkbox" id="simple" checked> Simple (ABCDEFG)</label>
+  <label>Scale
+    <select id="scale">
+      <option value="major" selected>Major</option>
+      <option value="pentatonic">Pentatonic</option>
+      <option value="minor">Minor</option>
+      <option value="blues">Blues</option>
+      <option value="chromatic">Chromatic</option>
+    </select>
+  </label>
+  <label>Wave
+    <select id="wave">
+      <option value="sine">Sine</option>
+      <option value="triangle">Triangle</option>
+      <option value="sawtooth">Saw</option>
+      <option value="square">Square</option>
+    </select>
+  </label>
+  <label>Range
+    <select id="range">
+      <option value="2">2 oct</option>
+      <option value="3" selected>3 oct</option>
+      <option value="4">4 oct</option>
+    </select>
+  </label>
+</div>
+
+<div id="portrait-warning">
+  <div class="icon">↻</div>
+  <h2 id="pw-title"></h2>
+  <p id="pw-text"></p>
+</div>
+
+<div id="start-screen">
+  <h1>soundgo</h1>
+  <p class="desc">
+    <span id="desc-main"></span>
+    <span id="cam-note"></span>
+  </p>
+  <button id="start-btn"></button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

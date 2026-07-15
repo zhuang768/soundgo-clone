@@ -1,0 +1,72 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #000; color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  overflow: hidden; }
+#stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+#video { transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover; }
+#canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+#start-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 24px; z-index: 20; }
+h1 { font-size: 40px; font-weight: 200; letter-spacing: 6px; }
+.desc { opacity: 0.75; max-width: 520px; text-align: center; line-height: 1.8; font-size: 15px; }
+.desc b { color: #4a9eff; font-weight: 500; }
+.desc i { color: #ff9e4a; font-style: normal; font-weight: 500; }
+#start-btn { padding: 14px 44px; font-size: 18px; background: #fff; color: #000;
+  border: none; border-radius: 40px; cursor: pointer; letter-spacing: 1px;
+  transition: transform 0.15s; }
+#start-btn:hover { transform: scale(1.05); }
+#start-btn:disabled { opacity: 0.5; cursor: wait; transform: none; }
+
+#hud { position: fixed; top: 16px; right: 16px; background: rgba(0,0,0,0.55);
+  padding: 10px 14px; border-radius: 8px; font-family: "SF Mono", Menlo, monospace;
+  font-size: 12px; line-height: 1.7; z-index: 10; backdrop-filter: blur(10px); }
+#hud span { color: #4a9eff; }
+
+#note-display { position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); font-size: 180px; font-weight: 100;
+  opacity: 0.25; pointer-events: none; z-index: 5; letter-spacing: -8px;
+  font-variant-numeric: tabular-nums; }
+
+#controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.6); padding: 10px 18px; border-radius: 40px;
+  display: flex; gap: 20px; align-items: center; z-index: 10;
+  backdrop-filter: blur(10px); font-size: 13px; }
+#controls label { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+#controls select { background: #222; color: #fff; border: 1px solid #444;
+  padding: 4px 8px; border-radius: 4px; font-size: 13px; }
+#controls input[type=checkbox] { accent-color: #4a9eff; }
+
+#portrait-warning {
+  position: fixed; inset: 0; background: #000; color: #fff;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; z-index: 100; padding: 40px; text-align: center;
+}
+#portrait-warning .icon {
+  font-size: 64px;
+  animation: rotate-hint 2s ease-in-out infinite;
+}
+#portrait-warning h2 { font-size: 22px; font-weight: 300; letter-spacing: 3px; }
+#portrait-warning p { opacity: 0.7; font-size: 14px; line-height: 1.6; white-space: pre-line; }
+
+#desc-main { display: block; white-space: pre-line; }
+#cam-note { display: block; margin-top: 18px; opacity: 0.6; }
+@keyframes rotate-hint {
+  0%, 100% { transform: rotate(-90deg); }
+  50% { transform: rotate(0deg); }
+}
+
+@media (max-width: 900px) {
+  #controls { padding: 7px 12px; gap: 10px; font-size: 13px; border-radius: 24px; }
+  #controls select { padding: 3px 6px; font-size: 13px; }
+  #hud { display: none; }
+  #start-screen { gap: 14px; padding: 20px; }
+  h1 { font-size: 40px; letter-spacing: 3px; }
+  .desc { font-size: 17px; line-height: 1.4; }
+  #start-btn { padding: 14px 40px; font-size: 22px; }
+  #note-display { font-size: 220px; }
+}
+@media (orientation: portrait) and (max-width: 900px) {
+  #portrait-warning { display: flex; }
+}

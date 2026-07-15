@@ -1,0 +1,780 @@
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const pitchVal = document.getElementById('pitch-val');
+const volVal = document.getElementById('vol-val');
+const rFistVal = document.getElementById('rfist-val');
+const chordVal = document.getElementById('chord-val');
+const handCount = document.getElementById('hand-count');
+const noteDisplay = document.getElementById('note-display');
+const snapEl = document.getElementById('snap');
+const scaleEl = document.getElementById('scale');
+const waveEl = document.getElementById('wave');
+const rangeEl = document.getElementById('range');
+const modeEl = document.getElementById('mode');
+const simpleEl = document.getElementById('simple');
+const startBtn = document.getElementById('start-btn');
+const startScreen = document.getElementById('start-screen');
+
+const I18N = {
+  en: { desc: "There are two modes.\nHave fun!", cam: "You'll need to allow camera access to play.",
+        start: "Start", loading: "Loading...", retry: "Retry",
+        rotateTitle: "ROTATE TO LANDSCAPE", rotate: "soundgo works in landscape.\nPlease rotate your device.",
+        permError: "Camera permission is required." },
+  ko: { desc: "두 가지 모드가 있어요.\n재미있게 사용해주세요!", cam: "카메라 권한을 허용해주셔야 사용할 수 있어요.",
+        start: "시작하기", loading: "불러오는 중...", retry: "다시 시도",
+        rotateTitle: "가로로 돌려주세요", rotate: "soundgo는 가로 화면에서 작동합니다.\n기기를 가로로 돌려주세요.",
+        permError: "카메라 권한이 필요합니다." },
+  es: { desc: "Hay dos modos.\n¡Diviértete!", cam: "Necesitas permitir el acceso a la cámara.",
+        start: "Empezar", loading: "Cargando...", retry: "Reintentar",
+        rotateTitle: "GIRA A HORIZONTAL", rotate: "soundgo funciona en horizontal.\nGira tu dispositivo.",
+        permError: "Se requiere permiso de cámara." },
+  pt: { desc: "Há dois modos.\nDivirta-se!", cam: "Você precisa permitir o acesso à câmera.",
+        start: "Começar", loading: "Carregando...", retry: "Tentar novamente",
+        rotateTitle: "GIRE PARA HORIZONTAL", rotate: "O soundgo funciona na horizontal.\nGire seu dispositivo.",
+        permError: "É necessária permissão de câmera." },
+  ja: { desc: "モードは2つあります。\n楽しんでください！", cam: "カメラへのアクセスを許可してください。",
+        start: "スタート", loading: "読み込み中...", retry: "再試行",
+        rotateTitle: "横向きにしてください", rotate: "soundgo は横向きで動作します。\n端末を横向きにしてください。",
+        permError: "カメラの許可が必要です。" },
+  'zh-Hans': { desc: "有两种模式。\n玩得开心！", cam: "需要允许使用摄像头。",
+        start: "开始", loading: "加载中...", retry: "重试",
+        rotateTitle: "请横屏使用", rotate: "soundgo 需要横屏运行。\n请旋转您的设备。",
+        permError: "需要摄像头权限。" },
+  'zh-Hant': { desc: "有兩種模式。\n玩得開心！", cam: "需要允許使用相機。",
+        start: "開始", loading: "載入中...", retry: "重試",
+        rotateTitle: "請橫向使用", rotate: "soundgo 需要橫向運行。\n請旋轉您的裝置。",
+        permError: "需要相機權限。" },
+  fr: { desc: "Il y a deux modes.\nAmusez-vous bien !", cam: "Vous devez autoriser l'accès à la caméra.",
+        start: "Démarrer", loading: "Chargement...", retry: "Réessayer",
+        rotateTitle: "PASSEZ EN MODE PAYSAGE", rotate: "soundgo fonctionne en mode paysage.\nVeuillez tourner votre appareil.",
+        permError: "L'autorisation de la caméra est requise." },
+  de: { desc: "Es gibt zwei Modi.\nViel Spaß!", cam: "Du musst den Kamerazugriff erlauben.",
+        start: "Starten", loading: "Wird geladen...", retry: "Erneut versuchen",
+        rotateTitle: "INS QUERFORMAT DREHEN", rotate: "soundgo funktioniert im Querformat.\nBitte drehe dein Gerät.",
+        permError: "Kameraberechtigung erforderlich." },
+  it: { desc: "Ci sono due modalità.\nDivertiti!", cam: "Devi consentire l'accesso alla fotocamera.",
+        start: "Inizia", loading: "Caricamento...", retry: "Riprova",
+        rotateTitle: "RUOTA IN ORIZZONTALE", rotate: "soundgo funziona in orizzontale.\nRuota il dispositivo.",
+        permError: "È richiesta l'autorizzazione della fotocamera." },
+  ru: { desc: "Есть два режима.\nПриятной игры!", cam: "Нужно разрешить доступ к камере.",
+        start: "Начать", loading: "Загрузка...", retry: "Повторить",
+        rotateTitle: "ПОВЕРНИТЕ ГОРИЗОНТАЛЬНО", rotate: "soundgo работает в горизонтальном режиме.\nПоверните устройство.",
+        permError: "Требуется доступ к камере." },
+  hi: { desc: "दो मोड हैं।\nमज़े करें!", cam: "कैमरा एक्सेस की अनुमति देनी होगी।",
+        start: "शुरू करें", loading: "लोड हो रहा है...", retry: "पुनः प्रयास करें",
+        rotateTitle: "लैंडस्केप में घुमाएँ", rotate: "soundgo लैंडस्केप मोड में काम करता है।\nकृपया अपना डिवाइस घुमाएँ।",
+        permError: "कैमरा की अनुमति आवश्यक है।" },
+  id: { desc: "Ada dua mode.\nSelamat bersenang-senang!", cam: "Anda perlu mengizinkan akses kamera.",
+        start: "Mulai", loading: "Memuat...", retry: "Coba lagi",
+        rotateTitle: "PUTAR KE LANSKAP", rotate: "soundgo bekerja dalam mode lanskap.\nSilakan putar perangkat Anda.",
+        permError: "Izin kamera diperlukan." },
+  vi: { desc: "Có hai chế độ.\nChúc bạn vui vẻ!", cam: "Bạn cần cho phép truy cập camera.",
+        start: "Bắt đầu", loading: "Đang tải...", retry: "Thử lại",
+        rotateTitle: "XOAY NGANG MÀN HÌNH", rotate: "soundgo hoạt động ở chế độ ngang.\nVui lòng xoay thiết bị của bạn.",
+        permError: "Cần quyền truy cập camera." },
+  tr: { desc: "İki mod var.\nİyi eğlenceler!", cam: "Kamera erişimine izin vermelisin.",
+        start: "Başla", loading: "Yükleniyor...", retry: "Tekrar dene",
+        rotateTitle: "YATAY MODA ÇEVİRİN", rotate: "soundgo yatay modda çalışır.\nLütfen cihazınızı döndürün.",
+        permError: "Kamera izni gerekli." },
+  ar: { desc: "هناك وضعان.\nاستمتع!", cam: "يجب السماح بالوصول إلى الكاميرا.",
+        start: "ابدأ", loading: "جارٍ التحميل...", retry: "إعادة المحاولة",
+        rotateTitle: "أدر الجهاز أفقيًا", rotate: "يعمل soundgo في الوضع الأفقي.\nيرجى تدوير جهازك.",
+        permError: "مطلوب إذن الكاميرا.", rtl: true },
+};
+
+function pickLang() {
+  const tags = navigator.languages && navigator.languages.length
+    ? navigator.languages : [navigator.language || 'en'];
+  for (const tag of tags) {
+    if (!tag) continue;
+    if (/^zh/i.test(tag)) {
+      return /Hant|TW|HK|MO/i.test(tag) ? 'zh-Hant' : 'zh-Hans';
+    }
+    const base = tag.toLowerCase().split('-')[0];
+    if (I18N[base]) return base;
+  }
+  return 'en';
+}
+
+const LANG = pickLang();
+function t(key) { return (I18N[LANG] && I18N[LANG][key]) || I18N.en[key]; }
+
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  if (I18N[LANG] && I18N[LANG].rtl) document.documentElement.dir = 'rtl';
+  document.getElementById('desc-main').textContent = t('desc');
+  document.getElementById('cam-note').textContent = t('cam');
+  document.getElementById('pw-title').textContent = t('rotateTitle');
+  document.getElementById('pw-text').textContent = t('rotate');
+  startBtn.textContent = t('start');
+}
+applyI18n();
+
+const SCALES = {
+  pentatonic: [0, 2, 4, 7, 9],
+  major: [0, 2, 4, 5, 7, 9, 11],
+  minor: [0, 2, 3, 5, 7, 8, 10],
+  blues: [0, 3, 5, 6, 7, 10],
+  chromatic: [0,1,2,3,4,5,6,7,8,9,10,11],
+};
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const MIDI_BASE = 48;
+
+function scaleNotes(scaleName, octaves) {
+  const scale = SCALES[scaleName];
+  const notes = [];
+  for (let o = 0; o < octaves; o++) {
+    for (const s of scale) notes.push(MIDI_BASE + o * 12 + s);
+  }
+  notes.push(MIDI_BASE + octaves * 12);
+  return notes;
+}
+function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+function midiName(m) {
+  const n = Math.round(m);
+  return NOTE_NAMES[((n % 12) + 12) % 12] + (Math.floor(n / 12) - 1);
+}
+
+let osc, gainNode, filter;
+let chordOscs = [], chordGain, chordFilter;
+function initAudio() {
+  filter = new Tone.Filter(2400, 'lowpass').toDestination();
+  gainNode = new Tone.Gain(0).connect(filter);
+  osc = new Tone.Oscillator(220, 'sine').connect(gainNode);
+  osc.start();
+
+  chordFilter = new Tone.Filter(1800, 'lowpass').toDestination();
+  chordGain = new Tone.Gain(0).connect(chordFilter);
+  for (let i = 0; i < 4; i++) {
+    const o = new Tone.Oscillator(220, 'triangle').connect(chordGain);
+    o.start();
+    chordOscs.push(o);
+  }
+}
+
+function dist2D(a, b) {
+  const dx = a.x - b.x, dy = a.y - b.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function pinchAmount(lm) {
+  const palm = dist2D(lm[0], lm[9]);
+  if (palm < 1e-4) return 0;
+  const ratio = dist2D(lm[4], lm[8]) / palm;
+  const CLOSED = 0.30, OPEN = 0.80;
+  return Math.max(0, Math.min(1, (OPEN - ratio) / (OPEN - CLOSED)));
+}
+
+let currentFreq = 220;
+let currentGain = 0;
+let currentChordGain = 0;
+let activeMidi = null;
+let chordRoot = null;
+let chordTones = [];
+let chordIsMinor = false;
+let chordClosure = 0;
+let KEYBOARD_H = 200;
+let KEYBOARD_BOTTOM_OFFSET = 120;
+const CHORD_WHEEL = { cx: 240, cy: 300, outerR: 220, innerR: 80, slices: 12 };
+const QUALITY_WHEEL = { cx: 1240, cy: 300, outerR: 220, innerR: 80, slices: 8 };
+const QUALITY_KEYS = ['maj', 'maj7', '7', 'sus4', 'm', 'm7', 'dim', 'aug'];
+const DIATONIC_ROOTS = [0, 2, 4, 5, 7, 9, 11];
+const DIATONIC_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+
+function sliceToRootName(i) {
+  return simpleEl.checked ? DIATONIC_NAMES[i] : NOTE_NAMES[i];
+}
+function sliceToRootMidi(i) {
+  return simpleEl.checked ? DIATONIC_ROOTS[i] : i;
+}
+const CHORD_TYPES = {
+  maj:  { intervals: [0, 4, 7],     suffix: '',     minorish: false },
+  maj7: { intervals: [0, 4, 7, 11], suffix: 'maj7', minorish: false },
+  '7':  { intervals: [0, 4, 7, 10], suffix: '7',    minorish: false },
+  sus4: { intervals: [0, 5, 7],     suffix: 'sus4', minorish: false },
+  m:    { intervals: [0, 3, 7],     suffix: 'm',    minorish: true  },
+  m7:   { intervals: [0, 3, 7, 10], suffix: 'm7',   minorish: true  },
+  dim:  { intervals: [0, 3, 6],     suffix: 'dim',  minorish: true  },
+  aug:  { intervals: [0, 4, 8],     suffix: 'aug',  minorish: false },
+};
+
+function updateWheelPos() {
+  const isTwoHand = modeEl && modeEl.value === 'two-hand-chord';
+  const isSmall = canvas.width < 900 || canvas.height < 600;
+  const minDim = Math.min(canvas.width, canvas.height);
+  const r = Math.min(220, Math.floor(minDim * (isTwoHand ? 0.28 : 0.3)));
+  CHORD_WHEEL.outerR = r;
+  CHORD_WHEEL.innerR = Math.max(30, Math.floor(r * 0.36));
+  QUALITY_WHEEL.outerR = r;
+  QUALITY_WHEEL.innerR = Math.max(30, Math.floor(r * 0.36));
+
+  KEYBOARD_H = isSmall ? Math.max(110, Math.floor(canvas.height * 0.28)) : 200;
+  KEYBOARD_BOTTOM_OFFSET = isSmall ? 70 : 120;
+
+  const bottomPad = isSmall ? 95 : 90;
+  CHORD_WHEEL.cy = Math.max(
+    CHORD_WHEEL.outerR + (isSmall ? 50 : 70),
+    canvas.height - CHORD_WHEEL.outerR - bottomPad
+  );
+  CHORD_WHEEL.slices = simpleEl.checked ? 7 : 12;
+  const edgePad = isSmall ? 6 : 20;
+  if (isTwoHand) {
+    const gap = isSmall ? 30 : 70;
+    const edgeLeft = CHORD_WHEEL.outerR + edgePad;
+    const centerLeft = canvas.width / 2 - CHORD_WHEEL.outerR - gap / 2;
+    CHORD_WHEEL.cx = Math.max(edgeLeft, (edgeLeft + centerLeft) / 2);
+    const edgeRight = canvas.width - QUALITY_WHEEL.outerR - edgePad;
+    const centerRight = canvas.width / 2 + QUALITY_WHEEL.outerR + gap / 2;
+    QUALITY_WHEEL.cx = Math.min(edgeRight, (edgeRight + centerRight) / 2);
+  } else {
+    CHORD_WHEEL.cx = CHORD_WHEEL.outerR + edgePad;
+    QUALITY_WHEEL.cx = canvas.width - QUALITY_WHEEL.outerR - edgePad;
+  }
+  QUALITY_WHEEL.cy = CHORD_WHEEL.cy;
+}
+
+function qualityWheelHit(hand) {
+  const p = hand[8];
+  const sx = (1 - p.x) * canvas.width;
+  const sy = p.y * canvas.height;
+  const dx = sx - QUALITY_WHEEL.cx;
+  const dy = sy - QUALITY_WHEEL.cy;
+  const dist = Math.hypot(dx, dy);
+  if (dist < QUALITY_WHEEL.innerR) return { engaged: false };
+  if (dist > QUALITY_WHEEL.outerR * 1.3) return { engaged: false };
+  let angle = Math.atan2(dy, dx) + Math.PI / 2;
+  if (angle < 0) angle += Math.PI * 2;
+  const slice = Math.floor(angle / (Math.PI * 2) * QUALITY_WHEEL.slices) % QUALITY_WHEEL.slices;
+  return { engaged: true, slice };
+}
+
+function keyboardBounds() {
+  const wheelRight = CHORD_WHEEL.cx + CHORD_WHEEL.outerR + 30;
+  const left = Math.max(canvas.width * 0.35, wheelRight);
+  return { left, width: canvas.width - left, frac: left / canvas.width };
+}
+
+function chordWheelHit(hand) {
+  const p = hand[8];
+  const sx = (1 - p.x) * canvas.width;
+  const sy = p.y * canvas.height;
+  const dx = sx - CHORD_WHEEL.cx;
+  const dy = sy - CHORD_WHEEL.cy;
+  const dist = Math.hypot(dx, dy);
+  if (dist < CHORD_WHEEL.innerR) return { engaged: false, inside: true };
+  if (dist > CHORD_WHEEL.outerR * 1.3) return { engaged: false, inside: false };
+  let angle = Math.atan2(dy, dx) + Math.PI / 2;
+  if (angle < 0) angle += Math.PI * 2;
+  const slice = Math.floor(angle / (Math.PI * 2) * CHORD_WHEEL.slices) % CHORD_WHEEL.slices;
+  const clamped = Math.min(dist, CHORD_WHEEL.outerR);
+  const volume = (clamped - CHORD_WHEEL.innerR) / (CHORD_WHEEL.outerR - CHORD_WHEEL.innerR);
+  return { engaged: true, inside: true, slice, volume };
+}
+
+function lerp(current, target, alpha) { return current + (target - current) * alpha; }
+
+function pitchHandXToMidi(pitchX, octaves) {
+  if (snapEl.checked) {
+    const notes = scaleNotes(scaleEl.value, octaves);
+    const idx = Math.max(0, Math.min(notes.length - 1, Math.floor(pitchX * notes.length)));
+    return notes[idx];
+  }
+  const midiMax = MIDI_BASE + octaves * 12;
+  return MIDI_BASE + pitchX * (midiMax - MIDI_BASE);
+}
+
+function onResults(results) {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  updateWheelPos();
+
+  const hands = results.multiHandLandmarks || [];
+  handCount.textContent = hands.length;
+
+  let pitchHand = null, leftHand = null;
+  if (hands.length === 1) {
+    const h = hands[0];
+    const screenX = 1 - h[8].x;
+    if (screenX < 0.5) leftHand = h;
+    else pitchHand = h;
+  } else if (hands.length >= 2) {
+    const sorted = [...hands].sort((a, b) => a[0].x - b[0].x);
+    pitchHand = sorted[0];
+    leftHand = sorted[1];
+  }
+  const octaves = parseInt(rangeEl.value, 10);
+
+  const mode = modeEl.value;
+  const isTwoHand = mode === 'two-hand-chord';
+
+  const qualityHit = (isTwoHand && pitchHand) ? qualityWheelHit(pitchHand) : null;
+
+  if (!isTwoHand && pitchHand) {
+    const pitchPt = pitchHand[8];
+    const screenX = Math.max(0, Math.min(1, 1 - pitchPt.x));
+    const kb = keyboardBounds();
+    const onKeyboard = screenX >= kb.frac;
+    const keyboardX = Math.max(0, Math.min(1,
+      (screenX - kb.frac) / (1 - kb.frac)));
+    const midi = pitchHandXToMidi(keyboardX, octaves);
+    activeMidi = (snapEl.checked && onKeyboard) ? midi : null;
+    const targetFreq = midiToFreq(midi);
+    const volY = Math.max(0, Math.min(1, 1 - pitchPt.y));
+    const rClosure = pinchAmount(pitchHand);
+    const fistGate = Math.pow(rClosure, 1.3);
+    const zoneGate = onKeyboard ? 1 : 0;
+    const targetGain = Math.pow(volY, 1.6) * 0.35 * fistGate * zoneGate;
+
+    currentFreq = lerp(currentFreq, targetFreq, snapEl.checked ? 0.4 : 0.25);
+    currentGain = lerp(currentGain, targetGain, 0.3);
+    osc.frequency.rampTo(currentFreq, 0.04);
+    gainNode.gain.rampTo(currentGain, 0.04);
+    if (osc.type !== waveEl.value) osc.type = waveEl.value;
+
+    pitchVal.textContent = onKeyboard ? currentFreq.toFixed(1) : 'off-zone';
+    volVal.textContent = (volY * 100).toFixed(0) + '%';
+    rFistVal.textContent = rClosure > 0.45
+      ? 'PINCH ' + (rClosure*100).toFixed(0)+'%'
+      : 'open ' + (rClosure*100).toFixed(0)+'%';
+    noteDisplay.textContent = (onKeyboard && fistGate > 0.15) ? midiName(midi) : '';
+  } else {
+    currentGain = lerp(currentGain, 0, 0.2);
+    if (gainNode) gainNode.gain.rampTo(currentGain, 0.05);
+    pitchVal.textContent = '---';
+    volVal.textContent = '---';
+    rFistVal.textContent = isTwoHand
+      ? (qualityHit && qualityHit.engaged ? QUALITY_KEYS[qualityHit.slice] : '---')
+      : '---';
+    noteDisplay.textContent = '';
+    activeMidi = null;
+  }
+
+  const wheelHit = leftHand ? chordWheelHit(leftHand) : null;
+  let qualityKey = 'maj';
+  if (isTwoHand) {
+    qualityKey = (qualityHit && qualityHit.engaged) ? QUALITY_KEYS[qualityHit.slice] : 'maj';
+    chordClosure = 0;
+    chordIsMinor = CHORD_TYPES[qualityKey].minorish;
+  } else if (leftHand) {
+    chordClosure = pinchAmount(leftHand);
+    chordIsMinor = chordClosure > 0.45;
+    qualityKey = chordIsMinor ? 'm' : 'maj';
+  } else {
+    chordClosure = 0;
+    chordIsMinor = false;
+  }
+
+  if (wheelHit && wheelHit.engaged) {
+    const quality = CHORD_TYPES[qualityKey];
+    const intervals = quality.intervals.slice();
+    while (intervals.length < 4) {
+      intervals.push(intervals[intervals.length % quality.intervals.length] + 12);
+    }
+    chordRoot = MIDI_BASE + sliceToRootMidi(wheelHit.slice);
+    chordTones = intervals.slice(0, 4).map(iv => chordRoot + iv);
+    const targetChordGain = isTwoHand ? 0.2 : Math.pow(wheelHit.volume, 1.2) * 0.2;
+    chordOscs.forEach((o, i) => {
+      o.frequency.rampTo(midiToFreq(chordRoot + intervals[i]), 0.12);
+    });
+    currentChordGain = lerp(currentChordGain, targetChordGain, 0.25);
+    chordGain.gain.rampTo(currentChordGain, 0.06);
+    chordVal.textContent = sliceToRootName(wheelHit.slice) + quality.suffix;
+  } else {
+    currentChordGain = lerp(currentChordGain, 0, 0.2);
+    if (chordGain) chordGain.gain.rampTo(currentChordGain, 0.08);
+    chordRoot = null;
+    chordTones = [];
+    chordVal.textContent = leftHand ? 'off' : '---';
+  }
+
+  if (isTwoHand) {
+    drawChordWheel(wheelHit);
+    drawQualityWheel(qualityHit);
+  } else {
+    drawKeyboardOrGuide();
+    drawChordWheel(wheelHit);
+  }
+
+  if (pitchHand) {
+    if (isTwoHand) {
+      const qLabel = (qualityHit && qualityHit.engaged)
+        ? QUALITY_KEYS[qualityHit.slice].toUpperCase() : 'QUALITY';
+      drawHand(pitchHand, '#4a9eff', qLabel);
+    } else {
+      const rc = pinchAmount(pitchHand);
+      const melodyColor = rc > 0.45 ? '#4a9eff' : 'rgba(150,180,220,0.6)';
+      drawHand(pitchHand, melodyColor, rc > 0.45 ? 'MELODY' : 'open');
+      drawPitchLine(pitchHand[8]);
+      drawVolumeLine(pitchHand[8]);
+    }
+  }
+  if (leftHand) {
+    const label = chordRoot !== null
+      ? (chordIsMinor ? 'Minor ' : 'Major ') + NOTE_NAMES[(chordRoot - MIDI_BASE) % 12]
+      : (chordIsMinor ? 'Minor' : 'Major');
+    drawHand(leftHand, chordIsMinor ? '#b87aff' : '#ff9e4a', label);
+  }
+}
+
+function drawQualityWheel(hit) {
+  const { cx, cy, outerR, innerR, slices } = QUALITY_WHEEL;
+  const activeSlice = hit && hit.engaged ? hit.slice : -1;
+  const mobileBoost = (canvas.width < 900 || canvas.height < 600) ? 2.3 : 1;
+  const s = (outerR / 220) * mobileBoost;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR + 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let i = 0; i < slices; i++) {
+    const a0 = (i - 0.5) / slices * Math.PI * 2 - Math.PI / 2;
+    const a1 = (i + 0.5) / slices * Math.PI * 2 - Math.PI / 2;
+    const isActive = i === activeSlice;
+    const minorish = CHORD_TYPES[QUALITY_KEYS[i]].minorish;
+    const baseColor = minorish ? '184,122,255' : '74,158,255';
+    ctx.fillStyle = isActive
+      ? `rgba(${baseColor},0.6)`
+      : `rgba(${baseColor},0.10)`;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outerR, a0, a1);
+    ctx.closePath();
+    ctx.fill();
+
+    const midA = (a0 + a1) / 2;
+    const lr = outerR * 0.72;
+    const lx = cx + Math.cos(midA) * lr;
+    const ly = cy + Math.sin(midA) * lr;
+    ctx.fillStyle = isActive ? '#fff' : 'rgba(255,255,255,0.75)';
+    ctx.font = (isActive ? 'bold ' : '') + Math.round((isActive ? 22 : 18) * s) + 'px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(QUALITY_KEYS[i], lx, ly);
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < slices; i++) {
+    const a = (i + 0.5) / slices * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * innerR, cy + Math.sin(a) * innerR);
+    ctx.lineTo(cx + Math.cos(a) * outerR, cy + Math.sin(a) * outerR);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = Math.round(16 * s) + 'px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('maj', cx, cy);
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+}
+
+function drawChordWheel(hit) {
+  const { cx, cy, outerR, innerR, slices } = CHORD_WHEEL;
+  const activeSlice = hit && hit.engaged ? hit.slice : -1;
+  const hoverColor = chordIsMinor ? '184,122,255' : '255,158,74';
+  const mobileBoost = (canvas.width < 900 || canvas.height < 600) ? 2.3 : 1;
+  const s = (outerR / 220) * mobileBoost;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR + 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let i = 0; i < slices; i++) {
+    const a0 = (i - 0.5) / slices * Math.PI * 2 - Math.PI / 2;
+    const a1 = (i + 0.5) / slices * Math.PI * 2 - Math.PI / 2;
+    const isActive = i === activeSlice;
+    ctx.fillStyle = isActive
+      ? `rgba(${hoverColor},0.55)`
+      : 'rgba(255,255,255,0.06)';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outerR, a0, a1);
+    ctx.closePath();
+    ctx.fill();
+
+    const midA = (a0 + a1) / 2;
+    const lr = outerR * 0.72;
+    const lx = cx + Math.cos(midA) * lr;
+    const ly = cy + Math.sin(midA) * lr;
+    ctx.fillStyle = isActive ? '#fff' : 'rgba(255,255,255,0.75)';
+    ctx.font = (isActive ? 'bold ' : '') + Math.round((isActive ? 24 : 20) * s) + 'px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(sliceToRootName(i), lx, ly);
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < slices; i++) {
+    const a = (i + 0.5) / slices * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * innerR, cy + Math.sin(a) * innerR);
+    ctx.lineTo(cx + Math.cos(a) * outerR, cy + Math.sin(a) * outerR);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = Math.round(16 * s) + 'px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('OFF', cx, cy);
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+}
+
+
+function drawKeyboardOrGuide() {
+  if (snapEl.checked) drawKeyboard();
+  else drawScaleGuide();
+}
+
+function drawKeyboard() {
+  const octaves = parseInt(rangeEl.value, 10);
+  const notes = scaleNotes(scaleEl.value, octaves);
+  const keyY = canvas.height - KEYBOARD_H - KEYBOARD_BOTTOM_OFFSET;
+  const kb = keyboardBounds();
+  const keyboardLeft = kb.left;
+  const keyboardW = kb.width;
+  const keyW = keyboardW / notes.length;
+
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(keyboardLeft, keyY, keyboardW, KEYBOARD_H);
+
+  const chordColor = chordIsMinor ? '184,122,255' : '255,158,74';
+  const mb = (canvas.width < 900 || canvas.height < 600) ? 2 : 1;
+  notes.forEach((m, i) => {
+    const x = keyboardLeft + i * keyW;
+    const isMelody = activeMidi !== null && Math.round(activeMidi) === m;
+    const isRoot = chordRoot !== null && chordRoot === m;
+    const isChordTone = chordTones.includes(m) && !isRoot;
+    const isC = (((m % 12) + 12) % 12) === 0;
+
+    let bg;
+    if (isMelody) bg = 'rgba(74,158,255,0.7)';
+    else if (isRoot) bg = `rgba(${chordColor},0.55)`;
+    else if (isChordTone) bg = `rgba(${chordColor},0.25)`;
+    else bg = isC ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)';
+    ctx.fillStyle = bg;
+    ctx.fillRect(x + 1, keyY + 2, keyW - 2, KEYBOARD_H - 4);
+
+    if (isMelody) {
+      ctx.fillStyle = 'rgba(74,158,255,1)';
+      ctx.fillRect(x + 1, keyY + 2, keyW - 2, 5);
+    }
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, keyY + 0.5, keyW - 1, KEYBOARD_H - 1);
+
+    const emphasized = isMelody || isRoot;
+    ctx.fillStyle = emphasized ? '#fff' : 'rgba(255,255,255,0.7)';
+    ctx.font = isMelody ? 'bold ' + Math.round(22 * mb) + 'px -apple-system, sans-serif'
+      : isRoot ? 'bold ' + Math.round(16 * mb) + 'px -apple-system, sans-serif'
+      : Math.round(14 * mb) + 'px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(midiName(m), x + keyW / 2, keyY + KEYBOARD_H / 2);
+  });
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawScaleGuide() {
+  if (!snapEl.checked) return;
+  const octaves = parseInt(rangeEl.value, 10);
+  const scale = SCALES[scaleEl.value];
+  const midiMax = MIDI_BASE + octaves * 12;
+  ctx.strokeStyle = 'rgba(74,158,255,0.12)';
+  ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(74,158,255,0.4)';
+  ctx.font = '10px monospace';
+  for (let m = MIDI_BASE; m <= midiMax; m++) {
+    const inScale = scale.includes(((m - MIDI_BASE) % 12 + 12) % 12);
+    if (!inScale) continue;
+    const norm = (m - MIDI_BASE) / (midiMax - MIDI_BASE);
+    const x = norm * canvas.width;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+    if (m % 12 === 0) {
+      ctx.fillText(midiName(m), x + 3, canvas.height - 8);
+    }
+  }
+}
+
+const HAND_CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[17,18],[18,19],[19,20],
+  [0,17],
+];
+
+function drawHand(landmarks, color, label) {
+  const toX = (lm) => (1 - lm.x) * canvas.width;
+  const toY = (lm) => lm.y * canvas.height;
+  const tip = landmarks[8];
+  const thumb = landmarks[4];
+  const tx = toX(tip), ty = toY(tip);
+  const thx = toX(thumb), thy = toY(thumb);
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  const indexChain = [5, 6, 7, 8];
+  ctx.beginPath();
+  ctx.moveTo(toX(landmarks[indexChain[0]]), toY(landmarks[indexChain[0]]));
+  for (let i = 1; i < indexChain.length; i++) {
+    ctx.lineTo(toX(landmarks[indexChain[i]]), toY(landmarks[indexChain[i]]));
+  }
+  ctx.stroke();
+
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = `${color}`;
+  ctx.beginPath();
+  ctx.moveTo(thx, thy);
+  ctx.lineTo(tx, ty);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(thx, thy, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(tx, ty, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(tx, ty, 18, 0, Math.PI * 2);
+  ctx.stroke();
+
+  if (label) {
+    ctx.fillStyle = color;
+    const handMb = (canvas.width < 900 || canvas.height < 600) ? 2 : 1;
+    ctx.font = 'bold ' + Math.round(14 * handMb) + 'px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, tx + 26, ty);
+  }
+}
+
+function drawPitchLine(pt) {
+  const x = (1 - pt.x) * canvas.width;
+  ctx.strokeStyle = 'rgba(74,158,255,0.35)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 6]);
+  ctx.beginPath();
+  ctx.moveTo(x, 0);
+  ctx.lineTo(x, canvas.height);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawVolumeLine(pt) {
+  const y = pt.y * canvas.height;
+  ctx.strokeStyle = 'rgba(255,158,74,0.35)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 6]);
+  ctx.beginPath();
+  ctx.moveTo(0, y);
+  ctx.lineTo(canvas.width, y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+async function start() {
+  startBtn.disabled = true;
+  startBtn.textContent = t('loading');
+  try {
+    await Tone.start();
+    initAudio();
+    const hands = new Hands({
+      locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${f}`,
+    });
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.6,
+      minTrackingConfidence: 0.5,
+    });
+    hands.onResults(onResults);
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 1280, height: 720, facingMode: 'user' },
+      audio: false,
+    });
+    video.srcObject = stream;
+    await new Promise((r) => (video.onloadedmetadata = r));
+    await video.play();
+
+    const camera = new Camera(video, {
+      onFrame: async () => { await hands.send({ image: video }); },
+      width: 1280,
+      height: 720,
+    });
+    camera.start();
+
+    startScreen.style.display = 'none';
+  } catch (e) {
+    console.error(e);
+    startBtn.disabled = false;
+    startBtn.textContent = t('retry');
+    alert(t('permError') + '\n' + e.message);
+  }
+}
+
+startBtn.addEventListener('click', start);
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
